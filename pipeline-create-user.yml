@@ -1,0 +1,42 @@
+apiVersion: tekton.dev/v1beta1 
+kind: Pipeline 
+metadata:
+  name: create-user-pipeline 
+spec: 
+  workspaces: 
+  - name: shared-mount
+  params: 
+  - name: git-url
+    type: string
+  - name: namespace-name
+    type : string
+  - name: target-cluster
+    type: string
+  - name: user-name
+    type: string
+  tasks: 
+  - name: fetch-repository
+    taskRef:
+      name: clone-ansible-playbook
+      kind: Task
+    workspaces:
+    - name: output 
+      workspace: shared-mount
+    params:
+    - name: git-url
+      value: "$(params.git-url)"
+  - name: launch-playbook
+    runAfter: ["fetch-repository"]
+    taskRef:
+      name: provision-namespace
+      kind: Task
+    params:
+    - name: namespace-name
+      value: "$(params.namespace-name)"
+    - name: user-name
+      value: "$(params.user-name)"
+    - name: target-cluster
+      value: "$(params.target-cluster)"
+    workspaces:
+    - name: output
+      workspace: shared-mount

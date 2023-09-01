@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1beta1 
+kind: Task 
+metadata:
+  name: clone-ansible-playbook 
+spec: 
+  workspaces:
+  - name: output
+  params:
+    - name: git-url
+      description: The URL of the git repository where playbooks are stored
+      type: string
+      default: "https://gitlab.consulting.redhat.com/vbroniko/k8s-createusers-playbook.git"
+  steps:
+    - name: clone
+      image: quay.io/vbroniko/ansible-runner:v1 
+      workingDir: /workspace/source
+      command: ["/bin/bash", "-c"]
+      args:
+        - |-
+          echo cloning repository
+          git clone $(params.git-url) "$(workspaces.output.path)/k8s-createusers-playbook"
+          echo -----------------------------------
+          pwd
+          ls "$(workspaces.output.path)"

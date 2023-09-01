@@ -1,0 +1,44 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: provision-namespace
+spec:
+  workspaces:
+  - name: output
+  params:
+    - name: namespace-name
+      description: the name of the namespace to be created
+      type: string
+      default: ""
+    - name: user-name
+      description: name of the user to be part of the namespace
+      type: string
+      default: ""
+    - name: target-cluster
+      description: the API endpoint of the target cluster (e.g api.cluster.example:6443)
+      default: ""
+    - name: validate-certs
+      description: wether or not we SSL
+      default: "no"
+  steps:
+    - name: launch-playbook
+      image: quay.io/vbroniko/ansible-runner:v1
+      workingDir: /workspace/source
+      script: |
+        #!/bin/sh
+        pip3 install kubernetes
+        pip3.9 install kubernetes
+        ls "$(workspaces.output.path)"
+        cat << 'EOF' > "$(workspaces.output.path)/main.yml"
+        - name: Test upgrade role
+          hosts: localhost
+          vars:
+            provision_namespace_user_name: "$(params.user-name)"
+            provision_namespace_namespace_name: "$(params.namespace-name)"
+            provision_namespace_target_cluster: "$(params.target-cluster)"
+          tasks:
+            - name: Test role
+              include_role:
+                name: k8s-createusers-playbook
+        EOF
+        ansible-playbook "$(workspaces.output.path)/main.yml"
