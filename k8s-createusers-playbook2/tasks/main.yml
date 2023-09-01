@@ -1,0 +1,45 @@
+---
+# tasks file for provision-namespace
+- name: Creating the namespace
+  kubernetes.core.k8s:
+    api_version: v1
+    kind: Namespace
+    name: "{{ provision_namespace_namespace_name }}"
+    state: present
+    host: "{{ provision_namespace_target_cluster }}"
+    validate_certs: no
+    api_key: "{{lookup('ansible.builtin.file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+
+- name: Creating the user
+  kubernetes.core.k8s:
+    api_version: user.openshift.io/v1
+    kind: User
+    name: "{{ provision_namespace_user_name }}"
+    state: present  
+    host: "{{ provision_namespace_target_cluster }}"
+    validate_certs: no
+    api_key: "{{lookup('ansible.builtin.file', '/var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+
+- name: Create the RoleBinding
+  kubernetes.core.k8s:
+    state: present
+    template: "{{ role_path }}/templates/rolebinding.j2"
+
+                                                        
+    # module_defaults:                                  
+    #   - kubernetes.core.k8s:                          
+    #     host: "{{ openshift_upgrade_checks_api_url }  }"
+    #     validate_certs: no                            
+    #     api_key: "{{lookup('ansible.builtin.file', '  /var/run/secrets/kubernetes.io/serviceaccount/token') }}"
+                                                        
+                                                        
+                                                        
+                                                        
+                                                        
+                                                        
+                                                        
+                                                        
+                                                        
+                                                        
+                                                        
+                                                        
